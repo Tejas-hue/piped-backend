@@ -22,11 +22,8 @@ FROM eclipse-temurin:21-jdk-alpine
 # Set working directory
 WORKDIR /app
 
-# Copy all jar files from the build stage
-COPY --from=build /app/build/libs/ ./libs/
+COPY --from=build /app/build/libs/*.jar ./piped.jar
 
-# Rename the actual built jar to piped.jar
-RUN cp ./libs/*.jar ./piped.jar
 
 # Set environment variable fallback for port
 ENV PORT=8080
