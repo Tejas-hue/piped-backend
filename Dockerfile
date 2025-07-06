@@ -1,32 +1,38 @@
+# -------- STAGE 1: Build the app --------
 FROM eclipse-temurin:21-jdk-alpine AS build
 
-# Install required tools
+# Install build tools
 RUN apk add --no-cache bash git curl unzip
 
-# Set workdir
+# Set working directory
 WORKDIR /app
 
-# Copy files
+# Copy all source code into the container
 COPY . .
 
-# Make Gradle wrapper executable
+# Make the Gradle wrapper executable
 RUN chmod +x ./gradlew
 
-# Build using wrapper (don't run tests)
+# Build the app (skip tests)
 RUN ./gradlew build -x test
 
-# ---------------------------
+# -------- STAGE 2: Run the app --------
+FROM eclipse-temurin:21-jdk-alpine
 
-FROM eclipse-temurin:17-jdk-alpine
-
+# Set working directory
 WORKDIR /app
 
-# Copy built JAR from previous stage
-COPY --from=build /app/build/libs/piped-backend-0.0.1-SNAPSHOT.jar ./piped.jar
+# Copy all jar files from the build stage
+COPY --from=build /app/build/libs/ ./libs/
 
+# Rename the actual built jar to piped.jar
+RUN cp ./libs/*.jar ./piped.jar
 
-EXPOSE 8080
+# Set environment variable fallback for port
 ENV PORT=8080
 
-# Start the app using env-passed JDBC
+# Expose port
+EXPOSE 8080
+
+# Start the app using the provided JDBC_URL from Render
 CMD ["sh", "-c", "java -Djdbc.url=$JDBC_URL -Dserver.port=$PORT -jar piped.jar"]
