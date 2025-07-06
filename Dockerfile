@@ -1,4 +1,4 @@
-FROM eclipse-temurin:17-jdk-alpine AS build
+FROM eclipse-temurin:21-jdk-alpine AS build
 
 # Install required tools
 RUN apk add --no-cache bash git curl unzip
