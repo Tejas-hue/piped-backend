@@ -1,19 +1,31 @@
-FROM gradle:8.1.1-jdk17-alpine as build
+FROM eclipse-temurin:17-jdk-alpine AS build
+
+# Install required tools
+RUN apk add --no-cache bash git curl unzip
+
+# Set workdir
 WORKDIR /app
 
+# Copy files
 COPY . .
 
-# Build the app without running tests
-RUN gradle build -x test
+# Make Gradle wrapper executable
+RUN chmod +x ./gradlew
 
-# ------------------------------
+# Build using wrapper (don't run tests)
+RUN ./gradlew build -x test
+
+# ---------------------------
 
 FROM eclipse-temurin:17-jdk-alpine
+
 WORKDIR /app
 
-COPY --from=build /app/build/libs/piped.jar ./piped.jar
+# Copy built JAR from previous stage
+COPY --from=build /app/build/libs/piped.jar .
 
 EXPOSE 8080
 ENV PORT=8080
 
+# Start the app using env-passed JDBC
 CMD ["sh", "-c", "java -Djdbc.url=$JDBC_URL -Dserver.port=$PORT -jar piped.jar"]
