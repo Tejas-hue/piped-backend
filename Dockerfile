@@ -1,31 +1,19 @@
-FROM eclipse-temurin:21-jdk AS build
+FROM eclipse-temurin:17-jdk-alpine
 
-WORKDIR /app/
+WORKDIR /app
 
-COPY . /app/
+# Install build tools
+RUN apk add --no-cache git gradle
 
-RUN --mount=type=cache,target=/root/.gradle/caches/ \
- ./gradlew shadowJar
+# Clone and build the app
+RUN git clone https://github.com/TeamPiped/Piped-Backend.git . && \
+    ./gradlew build -x test
 
-FROM eclipse-temurin:21-jre
+# Set environment variable fallback
+ENV PORT=8080
 
-RUN --mount=type=cache,target=/var/cache/apt/ \
- apt-get update && \
- apt-get install -y --no-install-recommends \
-  curl \
-  && \
- apt-get clean && \
- rm -rf /var/lib/apt/lists/*
-
-WORKDIR /app/
-
-COPY hotspot-entrypoint.sh docker-healthcheck.sh /
-
-COPY --from=build /app/build/libs/piped-1.0-all.jar /app/piped.jar
-
-COPY VERSION .
-
+# Expose the port
 EXPOSE 8080
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 CMD /docker-healthcheck.sh
-ENTRYPOINT ["/hotspot-entrypoint.sh"]
+# Run the app using JDBC_URL from environment
+CMD ["sh", "-c", "java -Djdbc.url=$JDBC_URL -Dserver.port=$PORT -jar build/libs/piped.jar"]
