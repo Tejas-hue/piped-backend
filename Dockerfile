@@ -24,7 +24,7 @@ WORKDIR /app
 
 COPY --from=build /app/build/libs/*.jar ./piped.jar
 
-
+ENV JDBC_URL=$JDBC_URL
 # Set environment variable fallback for port
 ENV PORT=8080
 
