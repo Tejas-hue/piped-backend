@@ -2,7 +2,7 @@
 FROM eclipse-temurin:21-jdk AS build
 
 # Install build tools
-RUN apk add --no-cache bash git curl unzip
+RUN apt-get update && apt-get install -y bash git curl unzip
 
 # Set working directory
 WORKDIR /app
