@@ -1,5 +1,5 @@
 # -------- STAGE 1: Build the app --------
-FROM eclipse-temurin:21-jdk-alpine AS build
+FROM eclipse-temurin:21-jdk AS build
 
 # Install build tools
 RUN apk add --no-cache bash git curl unzip
@@ -17,7 +17,7 @@ RUN chmod +x ./gradlew
 RUN ./gradlew build -x test
 
 # -------- STAGE 2: Run the app --------
-FROM eclipse-temurin:21-jdk-alpine
+FROM eclipse-temurin:21-jdk
 
 # Set working directory
 WORKDIR /app
